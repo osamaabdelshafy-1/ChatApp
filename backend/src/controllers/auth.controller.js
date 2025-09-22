@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model.js");
 const generateToken = require("../utils/generateToken.js");
+const sendWelcomeEmail = require("../emails/emailHandler.js");
 const signUp = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -32,20 +33,31 @@ const signUp = async (req, res) => {
     const newUser = new User({ fullName, email, password: hashedPassword });
     if (newUser) {
       //save the user in the database
-      const saverUser = await newUser.save();
+      const savedUser = await newUser.save();
 
       //generate a token to use it for accessing the routes
       // payload , res object to save the token inside it
-      generateToken(saverUser._id, res);
+      generateToken(savedUser._id, res);
       res.status(201).json({
         data: {
-          _id: newUser._id,
-          fullName: newUser.fullName,
-          email: newUser.email,
-          profilePic: newUser.profilePic,
+          _id: savedUser._id,
+          fullName: savedUser.fullName,
+          email: savedUser.email,
+          profilePic: savedUser.profilePic,
         },
         message: "A new user is registered. ",
       });
+      //sending welcome email
+      try {
+        await sendWelcomeEmail(
+          newUser.email,
+          newUser.fullName,
+          process.env.CLIENT_URL
+        );
+        console.log("calling the function");
+      } catch (e) {
+        console.error("failed to send welcome email,", e.message);
+      }
     } else {
       return res.status(400).json({
         message: "Invalid user data.",
