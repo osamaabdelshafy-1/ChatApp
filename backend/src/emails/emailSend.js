@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
-const  createWelcomeEmailTemplate = require("./emailTemplates");
+const createWelcomeEmailTemplate = require("./emailTemplates");
 
-async function sendMail(name , email , clientURL) {
+async function sendMail(name, email, clientURL) {
   try {
     // 1. Create transporter
     const transporter = nodemailer.createTransport({
@@ -10,7 +10,7 @@ async function sendMail(name , email , clientURL) {
       secure: true,
       auth: {
         user: "osamaabdelshafy7@gmail.com",
-        pass:process.env.APP_PASSKEY, // <-- App Password, not Gmail password
+        pass: process.env.APP_PASSKEY, // <-- App Password, not Gmail password
       },
     });
 
@@ -20,7 +20,7 @@ async function sendMail(name , email , clientURL) {
       to: email, // sending to yourself for test
       subject: "welcome to electron ChatApp",
       text: "Hello from SMTP!",
-      html:createWelcomeEmailTemplate(name , clientURL), // use your HTML template
+      html: createWelcomeEmailTemplate(name, clientURL), // HTML template
     });
 
     console.log("✅ Message sent: %s", info.messageId);
@@ -29,4 +29,4 @@ async function sendMail(name , email , clientURL) {
   }
 }
 
-module.exports = sendMail
+module.exports = sendMail;

@@ -5,7 +5,7 @@ const sendMail = require("../emails/emailSend.js");
 const asyncWrapper = require("../middlewares/asyncWrapper.js");
 const appError = require("../utils/appError.js");
 const httpsStatusText = require("../utils/httpsStatusText.js");
-
+const cloudinary = require("../lib/cloudinary.js");
 const signUp = asyncWrapper(async (req, res, next) => {
   const { fullName, email, password } = req.body;
 
@@ -132,4 +132,39 @@ const logOut = asyncWrapper(async (_, res, next) => {
   res.status(200).json({ message: "logged out successfully" });
 });
 
-module.exports = { signUp, logIn, logOut };
+const updateProfile = asyncWrapper(async (req, res, next) => {
+  const { profilePic } = req.body;
+  if (!profilePic) {
+    return next(appError.create("No profile picture is uploaded", 400, httpsStatusText.FAIL));
+  }
+
+  const userId = req.user._id;
+
+  let uploadResponse;
+  try {
+    uploadResponse = await cloudinary.uploader.upload(profilePic, {
+      folder: "profiles",
+      allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    });
+  } catch (err) {
+    return next(appError.create("Image upload failed", 500, httpsStatusText.FAIL));
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { profilePic: uploadResponse.secure_url },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    return next(appError.create("User not found", 404, httpsStatusText.FAIL));
+  }
+
+  res.status(200).json({
+    data: updatedUser,
+    statusText: httpsStatusText.SUCCESS,
+    message: "The user profile picture is updated successfully",
+  });
+});
+
+module.exports = { signUp, logIn, logOut, updateProfile };

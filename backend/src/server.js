@@ -1,17 +1,17 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth.route");
 const connectDB = require("./lib/db");
 const httpsStatusText = require("./utils/httpsStatusText");
-require("dotenv").config();
-const app = express();
-
-app.use(express.json());
-app.use("/api/v1/auth", authRoutes);
 
 const PORT = process.env.PORT || 3000;
+const app = express();
 
-app.use("/api" , (req, res) => {
-
+require("dotenv").config();
+app.use(express.json());
+app.use(cookieParser()); // middleware for parsing the  cookie in case of the authentication
+app.use("/api/v1/auth", authRoutes);
+app.use("/api", (req, res) => {
   return res.status(404).json({
     status: httpsStatusText.ERROR,
     data: null,
@@ -19,7 +19,6 @@ app.use("/api" , (req, res) => {
   });
 });
 app.use((error, req, res, next) => {
-
   return res.status(error.statusCode || 500).json({
     status: error.statusText || httpsStatusText.ERROR,
     data: null,
