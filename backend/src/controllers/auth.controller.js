@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model.js");
 const generateToken = require("../utils/generateToken.js");
-const sendWelcomeEmail = require("../emails/emailHandler.js");
+const sendMail = require("../emails/emailSend.js");
 const asyncWrapper = require("../middlewares/asyncWrapper.js");
 const appError = require("../utils/appError.js");
 const httpsStatusText = require("../utils/httpsStatusText.js");
@@ -81,16 +81,22 @@ const signUp = asyncWrapper(async (req, res, next) => {
     message: "A new user is registered. ",
   });
 
-  //sending welcome email
+  //   //sending welcome email by resend
+  //   try {
+  //     await sendWelcomeEmail(
+  //       newUser.email,
+  //       newUser.fullName,
+  //       process.env.CLIENT_URL
+  //     );
+  //     console.log("calling the function");
+  //   } catch (e) {
+  //     console.error("failed to send welcome email,", e.message);
+  //   }
+
   try {
-    await sendWelcomeEmail(
-      newUser.email,
-      newUser.fullName,
-      process.env.CLIENT_URL
-    );
-    console.log("calling the function");
-  } catch (e) {
-    console.error("failed to send welcome email,", e.message);
+    await sendMail(newUser.fullName, newUser.email, process.env.CLIENT_URL);
+  } catch (error) {
+    console.log(error.message);
   }
 });
 
