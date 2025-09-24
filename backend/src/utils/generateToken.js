@@ -1,12 +1,13 @@
 const jwt = require("jsonwebtoken");
+const ENV = require("../lib/env.js");
 module.exports = function generateToken(userId, res) {
+  //   check the secret key in the .env
+  const JWT_SECRET = ENV.JWT_SECRET;
 
-//   check the secret key in the .env
-  const { JWT_SECRET } = process.env;
   if (!JWT_SECRET) throw new Error("the JWT_SECRET is not set");
 
   //    payload , secret key
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ userId }, JWT_SECRET, {
     expiresIn: "7d",
   });
   //cookie name ,value , options

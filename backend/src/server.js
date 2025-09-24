@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth.route");
@@ -7,7 +8,6 @@ const httpsStatusText = require("./utils/httpsStatusText");
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-require("dotenv").config();
 app.use(express.json());
 app.use(cookieParser()); // middleware for parsing the  cookie in case of the authentication
 app.use("/api/v1/auth", authRoutes);

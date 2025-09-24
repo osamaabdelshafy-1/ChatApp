@@ -6,6 +6,8 @@ const asyncWrapper = require("../middlewares/asyncWrapper.js");
 const appError = require("../utils/appError.js");
 const httpsStatusText = require("../utils/httpsStatusText.js");
 const cloudinary = require("../lib/cloudinary.js");
+const ENV = require("../lib/env.js");
+
 const signUp = asyncWrapper(async (req, res, next) => {
   const { fullName, email, password } = req.body;
 
@@ -103,7 +105,8 @@ const signUp = asyncWrapper(async (req, res, next) => {
 const logIn = asyncWrapper(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password"); //include the password on the result
+
   if (!user)
     return next(
       appError.create("Invalid credentials", 400, httpsStatusText.FAIL)
@@ -116,6 +119,7 @@ const logIn = asyncWrapper(async (req, res, next) => {
     );
 
   generateToken(user._id, res);
+
   res.status(200).json({
     data: {
       _id: user._id,
@@ -133,30 +137,51 @@ const logOut = asyncWrapper(async (_, res, next) => {
 });
 
 const updateProfile = asyncWrapper(async (req, res, next) => {
-  const { profilePic } = req.body;
-  if (!profilePic) {
-    return next(appError.create("No profile picture is uploaded", 400, httpsStatusText.FAIL));
+  const userId = req.user._id;
+  const prevProfilePicId = req.user.profilePicId;
+  //upload the file as form-data
+  if (!req.file) {
+    return next(
+      appError.create(
+        "No profile picture is uploaded",
+        400,
+        httpsStatusText.FAIL
+      )
+    );
   }
 
-  const userId = req.user._id;
+  const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
+    folder: "profiles",
+  });
 
-  let uploadResponse;
-  try {
-    uploadResponse = await cloudinary.uploader.upload(profilePic, {
-      folder: "profiles",
-      allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    });
-  } catch (err) {
-    return next(appError.create("Image upload failed", 500, httpsStatusText.FAIL));
+  //if no error happing on operation of uploading
+  if (uploadResponse) {
+    if (prevProfilePicId) {
+      //destroy the previous photo after the upload the new one
+      await cloudinary.uploader.destroy(prevProfilePicId);
+    }
   }
 
   const updatedUser = await User.findByIdAndUpdate(
     userId,
-    { profilePic: uploadResponse.secure_url },
-    { new: true }
+    {
+      profilePic: uploadResponse.secure_url,
+      profilePicId: uploadResponse.public_id, // store the Id of picture on cloudinary cloud to remove it in case of update & upload the new one
+    },
+    { new: true } // return the new object updated user .
   );
 
   if (!updatedUser) {
+    // delete by public_id : in case of error on updating the user .
+    try {
+      await cloudinary.uploader.destroy(uploadResponse.public_id);
+    } catch (error) {
+      console.log(
+        "error happen in cloudinary server on deleting the photo",
+        error.message
+      );
+    }
+
     return next(appError.create("User not found", 404, httpsStatusText.FAIL));
   }
 
