@@ -8,7 +8,7 @@ const httpsStatusText = require("./utils/httpsStatusText");
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "5MB" })); //added limits size to data that will be sended in body.
 app.use(cookieParser()); // middleware for parsing the  cookie in case of the authentication
 app.use("/api/v1/auth", authRoutes);
 app.use("/api", (req, res) => {
