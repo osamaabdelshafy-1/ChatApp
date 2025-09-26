@@ -15,6 +15,8 @@ const messageSchema = new mongoose.Schema(
     text: {
       type: String,
       required: false,
+      trim: true,
+      maxlength: 2000,
     },
     image: {
       type: String,
@@ -25,6 +27,18 @@ const messageSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+//make an indexes to faster the operation of searching
+messageSchema.index({ senderId: 1, receiverId: 1, createdAt: -1 });
+messageSchema.index({ receiverId: 1, senderId: 1, createdAt: -1 });
+
+//require at least one of the text or image.
+messageSchema.pre("validate", function (next) {
+  if (!this.text && !this.image) {
+    return next(new Error("Either text or image is required"));
+  }
+  next();
+});
 
 const Message = mongoose.model("Message", messageSchema);
 

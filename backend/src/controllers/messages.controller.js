@@ -38,7 +38,7 @@ const getChatsPartners = asyncWrapper(async (req, res, next) => {
   const messages = await Message.find({
     $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
   }); //the result is an array of messages object <document> .
- 
+
   // use to string because it may be an object . to avoid comparison on references
   //use set to remove the duplicates
   const chatPartnerIds = [
@@ -93,6 +93,28 @@ const sendMessage = asyncWrapper(async (req, res, next) => {
   const { id: receiverId } = req.params;
   const senderId = req.user._id;
 
+  if (!image && !text) {
+    next(
+      appError.create("text or image is required.", 400, httpsStatusText.FAIL)
+    );
+  }
+
+  if (senderId.equals(receiverId)) {
+    return next(
+      appError.create(
+        "you can't send to your self !",
+        400,
+        httpsStatusText.FAIL
+      )
+    );
+  }
+
+  const receiverExists = await User.find({ _id: receiverId });
+  if (!receiverExists) {
+    return next(
+      appError.create("Receiver is not found.", 400, httpsStatusText.FAIL)
+    );
+  }
   let imageUrl = null;
 
   if (image) {
