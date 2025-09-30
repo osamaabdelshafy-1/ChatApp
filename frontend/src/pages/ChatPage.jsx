@@ -3,6 +3,7 @@ import ProfileHeader from "../components/ProfileHeader";
 // import { useAuthStore } from "../store/useAuthStore";
 import ChatContainer from "../components/ChatContainer";
 import ChatsList from "../components/ChatsList";
+import ContactsList from "../components/ContactsList";
 import NoConversationPlaceHolder from "../components/NoConversationPlaceHolder";
 import { useChatStore } from "../store/useChatStore";
 import BorderAnimatedContainer from "./../components/BorderAnimatedContainer";
