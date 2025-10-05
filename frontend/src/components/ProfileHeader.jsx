@@ -11,6 +11,7 @@ import { useAuthStore } from "./../store/useAuthStore";
 // create an instance of the audio class to add an audio click on web site.
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 const ProfileHeader = () => {
+
   const { authUser, logOut, updateProfile, isUpdatingProfileImage } =
     useAuthStore();
   const { isSoundEnabled, toggleSound } = useChatStore();
@@ -21,7 +22,7 @@ const ProfileHeader = () => {
     const file = e.target.files[0];
     if (!file) return;
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", file); //name of the field <image must be the same when you setup in the backend. >
     updateProfile(formData);
   };
 
@@ -29,7 +30,7 @@ const ProfileHeader = () => {
     <div className="p-6 border-slate-700/50  ">
       <div className="flex items-center justify-between ">
         {/* left side  >> img and texts */}
-        <div className="img-info flex items-center gap-3">
+        <div className="img+info flex items-center gap-3">
           {/* avatar */}
           {/* classes {avatar online}  in daisyUI library */}
           <div className="avatar online">

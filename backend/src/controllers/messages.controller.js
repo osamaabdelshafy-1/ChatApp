@@ -89,12 +89,13 @@ const getMessagesByUserId = asyncWrapper(async (req, res, next) => {
 });
 
 const sendMessage = asyncWrapper(async (req, res, next) => {
-  const { text, image } = req.body;
+  const { text } = req.body;
+  const image = req.file;
   const { id: receiverId } = req.params;
   const senderId = req.user._id;
 
   if (!image && !text) {
-    next(
+    return next(
       appError.create("text or image is required.", 400, httpsStatusText.FAIL)
     );
   }
@@ -109,7 +110,7 @@ const sendMessage = asyncWrapper(async (req, res, next) => {
     );
   }
 
-  const receiverExists = await User.find({ _id: receiverId });
+  const receiverExists = await User.findById(receiverId);
   if (!receiverExists) {
     return next(
       appError.create("Receiver is not found.", 400, httpsStatusText.FAIL)
@@ -120,7 +121,7 @@ const sendMessage = asyncWrapper(async (req, res, next) => {
   if (image) {
     // if there are image upload it
     //upload based64 photo to cloudinary
-    const uploadResponse = await cloudinary.uploader.upload(image, {
+    const uploadResponse = await cloudinary.uploader.upload(image.path, {
       folder: "chats_images",
     });
     imageUrl = uploadResponse.secure_url;

@@ -3,7 +3,7 @@ const router = express.Router();
 const messagesController = require("../controllers/messages.controller");
 const protectedRoute = require("../middlewares/protectedRoute");
 const arcjectProtection = require("../middlewares/arcject.middleware");
-
+const upload = require("../middlewares/multer")
 //this validation object make the request take more time // check it
 // const validationObjectById = require("../middlewares/validationObjectId.middleware");
 
@@ -20,6 +20,6 @@ router.get(
 
   messagesController.getMessagesByUserId
 );
-router.post("/send/:id", messagesController.sendMessage);
+router.post("/send/:id", upload.single('image') , messagesController.sendMessage);
 
 module.exports = router;
