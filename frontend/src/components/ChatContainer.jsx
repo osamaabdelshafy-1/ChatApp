@@ -6,15 +6,31 @@ import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 const ChatContainer = () => {
-  const { selectedUser, messages, getMessagesByUserId, isMessagesLoading } =
-    useChatStore();
+  const {
+    selectedUser,
+    messages,
+    getMessagesByUserId,
+    isMessagesLoading,
+    unsubscribeToMessages,
+    subscribeToMessages,
+  } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   useEffect(() => {
     if (selectedUser?._id) {
       getMessagesByUserId(selectedUser._id);
+
+      subscribeToMessages();
+
+      //clean up  >> to prevent overheadCalling
+      return () => unsubscribeToMessages();
     }
-  }, [selectedUser, getMessagesByUserId]);
+  }, [
+    selectedUser,
+    getMessagesByUserId,
+    subscribeToMessages,
+    unsubscribeToMessages,
+  ]);
 
   //to get the last message sent automatic on the screen no needing to manual scrolling
   useEffect(() => {

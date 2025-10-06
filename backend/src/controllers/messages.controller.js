@@ -4,6 +4,7 @@ const appError = require("../utils/appError");
 const httpsStatusText = require("../utils/httpsStatusText");
 const User = require("../models/user.model");
 const cloudinary = require("../lib/cloudinary");
+const { getReceiverSocketId, io } = require("../lib/socket");
 
 const getAllContacts = asyncWrapper(async (req, res, next) => {
   const loggedInUserId = req.user._id;
@@ -148,6 +149,12 @@ const sendMessage = asyncWrapper(async (req, res, next) => {
   //todo: send message in real-time if user is online -socket.io.
   //implemented later .
 
+  const receiverSocketId = getReceiverSocketId(receiverId);
+  //if is true this mean receiver is online
+  if (receiverSocketId) {
+    // sendOnly receiver
+    io.to(receiverSocketId).emit("newMessage", newMessage);
+  }
   res.status(201).json({
     data: newMessage,
     status: httpsStatusText.SUCCESS,

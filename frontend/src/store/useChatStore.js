@@ -86,7 +86,7 @@ export const useChatStore = create((set, get) => ({
       senderId: authUser._id,
       receiverId: selectedUser._id,
       text: text,
-      image: imagePreview, // Use the preview URL for immediate display 
+      image: imagePreview, // Use the preview URL for immediate display
       imageFile: imageFile, // Keep the original file for sending
       createdAt: new Date().toISOString(),
       isOptimistic: true,
@@ -127,5 +127,36 @@ export const useChatStore = create((set, get) => ({
 
       toast.error(error.response?.data?.message || "Message failed to send");
     }
+  },
+
+  //listen to any income message for socket.io
+  subscribeToMessages: () => {
+    const { selectedUser, isSoundEnabled } = get();
+    if (!selectedUser) return;
+
+    //get socket connection from useAuthStore
+    const socket = useAuthStore.getState().socket;
+
+    //listen on the sent message from other users
+    socket.on("newMessage", (newMessage) => {
+      //only update UI if the message is sent to selectedId.
+      const isMessageSentFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
+      if (!isMessageSentFromSelectedUser) return;
+
+      const currentMessages = get().messages;
+      set({ messages: [...currentMessages, newMessage] });
+      if (isSoundEnabled) {
+        const notificationSound = new Audio("/sounds/notification.mp3");
+        notificationSound.currentTime = 0;
+        notificationSound
+          ?.play()
+          .catch((e) => console.log("Audio play failed ", e));
+      }
+    });
+  },
+  unsubscribeToMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    socket.off("newMessage");
   },
 }));

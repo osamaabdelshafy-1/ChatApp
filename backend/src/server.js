@@ -7,7 +7,7 @@ const authRoutes = require("./routes/auth.route");
 const messageRoutes = require("./routes/message.route");
 const PORT = process.env.PORT || 3000;
 const cors = require("cors");
-const app = express();
+const { app, server, io } = require("./lib/socket");
 
 app.use(
   cors({
@@ -38,7 +38,8 @@ app.use((error, req, res, next) => {
 // connect to DB before server listening  to port for running the app
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
+    //server is socket.io server
+    server.listen(PORT, () => {
       console.log(`server running on port: ${PORT}`);
     });
   })
