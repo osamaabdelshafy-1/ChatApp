@@ -1,5 +1,5 @@
 // custom hook
-// array sounds
+// array of  sounds
 const keyboardSound = [
   new Audio("/sounds/keystroke1.mp3"),
   new Audio("/sounds/keystroke2.mp3"),
